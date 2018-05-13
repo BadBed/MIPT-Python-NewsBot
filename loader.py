@@ -1,11 +1,12 @@
 import parser
+import os
 import dateparser
 from my_database import TableTag, TableArticle, TableTopic
 
 
 def load_new(default_time):
     try:
-        file = open('config/last_ubdate_db', 'r')
+        file = open('last_update_db', 'r')
         time = dateparser.parse(file.read())
         file.close()
     except FileNotFoundError:
@@ -13,8 +14,8 @@ def load_new(default_time):
 
     load(time)
 
-    file = open('config/last_ubdate_db', 'w')
-    file.write(dateparser.parse('today'))
+    file = open('last_update_db', 'w')
+    file.write(str(dateparser.parse('today')))
     file.close()
 
 

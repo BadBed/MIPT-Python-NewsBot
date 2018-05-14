@@ -1,6 +1,5 @@
 from my_database import TableTopic, TableArticle, TableTag
 from collections import defaultdict
-import math
 import re
 import string
 

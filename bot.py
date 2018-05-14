@@ -16,15 +16,15 @@ def f(message):
 @bot.message_handler(commands=['help'])
 def com_help(message):
     bot.send_message(message.chat.id,
-    """help - показать все, что может бот. \n
-    new_docs <N> - показать N самых свежих новостей. \n
-    new_topics <N> - показать N самых свежих тем. \n
-    topic <topic_name> - показать описание темы и заголовки 5 самых
+    """\\help - показать все, что может бот. \n
+    \\new_docs <N> - показать N самых свежих новостей. \n
+    \\new_topics <N> - показать N самых свежих тем. \n
+    \\topic <topic_name> - показать описание темы и заголовки 5 самых
      свежих новостей в этой теме. \n
-    doc <doc_title> - показать текст документа с заданным заголовком. \n
-    words <topic_name> - показать 5 самых популярных тегов по этой тему. \n
-    describe_doc <doc_title> - вывести статистику по документу. \n
-    describe_topic <topic_name> - вывести статистику по теме. \n
+    \\doc <doc_title> - показать текст документа с заданным заголовком. \n
+    \\words <topic_name> - показать 5 самых популярных тегов по этой тему. \n
+    \\describe_doc <doc_title> - вывести статистику по документу. \n
+    \\describe_topic <topic_name> - вывести статистику по теме. \n
     """)
 
 
@@ -36,8 +36,8 @@ def com_new_docs(message):
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    for i in str(statistic.last_articles(n)):
-        bot.send_message(message.chat.id, i.title + '\n' + i.url)
+    for i in statistic.last_articles(n):
+        bot.send_message(message.chat.id, str(i.title) + '\n' + str(i.url))
 
 
 @bot.message_handler(commands=['new_topics'])

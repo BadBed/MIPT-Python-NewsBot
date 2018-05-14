@@ -1,4 +1,4 @@
-import parser
+import rbc_parser
 import os
 import dateparser
 import statistic
@@ -21,9 +21,9 @@ def load_new(default_time):
 
 
 def load(time):
-    topics = parser.parse_topics_list()
+    topics = rbc_parser.parse_topics_list()
     for t in topics:
-        articles = parser.parse_topic(t['url'])
+        articles = rbc_parser.parse_topic(t['url'])
         if articles[0]['time'] < time:
             break
 
@@ -40,7 +40,7 @@ def load(time):
             if (a['time'] < time):
                 break
 
-            art = parser.parse_article(a['url'])
+            art = rbc_parser.parse_article(a['url'])
             print('article:', a['title'])
             article = TableArticle.create(topic=topic,
                                           title=a['title'],

@@ -11,15 +11,15 @@ bot = TeleBot('560308205:AAF2VvyafzjeL0Oe3CFzHm4nV5bbMDRh9Og')
 @bot.message_handler(commands=['help'])
 def com_help(message):
     bot.send_message(message.chat.id,
-    """\\help - показать все, что может бот. \n
-    \\new_docs <N> - показать N самых свежих новостей. \n
-    \\new_topics <N> - показать N самых свежих тем. \n
-    \\topic <topic_name> - показать описание темы и заголовки 5 самых
+    """/help - показать все, что может бот. \n
+    /new_docs <N> - показать N самых свежих новостей. \n
+    /new_topics <N> - показать N самых свежих тем. \n
+    /topic <topic_name> - показать описание темы и заголовки 5 самых
      свежих новостей в этой теме. \n
-    \\doc <doc_title> - показать текст документа с заданным заголовком. \n
-    \\words <topic_name> - показать 5 самых популярных тегов по этой тему. \n
-    \\describe_doc <doc_title> - вывести статистику по документу. \n
-    \\describe_topic <topic_name> - вывести статистику по теме. \n
+    /doc <doc_title> - показать текст документа с заданным заголовком. \n
+    /tags <topic_name> - показать 5 самых популярных тегов по этой тему. \n
+    /describe_doc <doc_title> - вывести статистику по документу. \n
+    /describe_topic <topic_name> - вывести статистику по теме. \n
     """)
 
 
@@ -60,81 +60,82 @@ def com_topic(message):
 
     bot.send_message(message.chat.id, topic.title + '\n' + topic.description)
 
-    for i in statistic.articles_by_topic(topic_title):
+    for i in statistic.articles_by_topic(topic_title, 5):
         bot.send_message(message.chat.id, i.title + '\n' + i.url)
 
 
 @bot.message_handler(commands=['doc'])
 def com_doc(message):
     try:
-        art_title = message.text.split()[1]
+        art_title = re.sub("/doc ", "", message.text, 1)
+        art = statistic.find_article(art_title)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    art = statistic.find_article(art_title)
     bot.send_message(message.chat.id, art.title + '\n' + art.text)
 
 
-@bot.message_handler(commands=['words'])
+@bot.message_handler(commands=['tags'])
 def com_words(message):
     try:
-        topic = message.text.split()[1]
+        topic = re.sub("/tags ", "", message.text, 1)
+        for t in statistic.best_tags(topic, 5):
+            bot.send_message(message.chat.id, t)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
-
-    for t in statistic.best_tags(5):
-        bot.send_message(message.chat.id, t)
 
 
 @bot.message_handler(commands=['describe_doc'])
 def com_descr_doc(message):
     try:
-        title = message.text.split()[1]
+        title = re.sub("/describe_doc ", "", message.text, 1)
+        statistic.find_article(title)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
     graphics.plot_words_len_freq(
-        statistic.word_freq(statistic.find_article(title).text), "plot.png")
+        statistic.word_len_freq(statistic.find_article(title).text), "plot.png")
     f = open("plot.png", "rb")
     bot.send_photo(message.chat.id, f)
     f.close()
 
     mes = "Самые популярные слова:\n"
     for i in statistic.most_popular_words(title, 15):
-        mes += i[0] + ' - ' + str(i[1]) + 'раз\n'
+        mes += i[0] + ' - ' + str(i[1]) + ' раз\n'
     bot.send_message(message.chat.id, mes)
 
 
 @bot.message_handler(commands=['describe_topic'])
-def com_descr_doc(message):
+def com_descr_topic(message):
     try:
-        title = message.text.split()[1]
+        title = re.sub("/describe_topic ", "", message.text, 1)
+        statistic.find_topic(title)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    bot.send_message(message.chat.id, "Количесвто слов в теме:" +
-                     statistic.words_count_in_topic(title))
+    bot.send_message(message.chat.id, "Количество слов в теме:" +
+                     str(statistic.words_count_in_topic(title)))
 
     bot.send_message(message.chat.id, "Количесвто статей в теме:" +
-                     statistic.docs_count_in_topic(title))
+                     str(statistic.docs_count_in_topic(title)))
 
     graphics.plot_words_len_freq(
-        statistic.word_freq_in_topic(title), "plot.png")
+        statistic.word_len_freq_in_topic(title), "plot.png")
     f = open("plot.png", "rb")
     bot.send_photo(message.chat.id, f)
     f.close()
 
     mes = "Самые популярные слова:\n"
     for i in statistic.most_popular_words_in_topic(title, 15):
-        mes += i[0] + ' - ' + str(i[1]) + 'раз\n'
+        mes += i[0] + ' - ' + str(i[1]) + ' раз\n'
     bot.send_message(message.chat.id, mes)
 
 
@@ -145,6 +146,7 @@ def if_send_text(message):
 
 def start_bot():
     loader.load_new("2 days ago")
+    print("starting bot")
     bot.polling(none_stop=True)
 
 

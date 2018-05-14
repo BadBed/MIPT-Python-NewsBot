@@ -3,16 +3,16 @@ import pandas as pnd
 import statistic
 
 
-def plot(x, y, title, xlabel, ylabel, file=None):
+def plot(x, y, title, xlabel, ylabel, file):
     plt.plot(x, y)
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    if file is not None:
-        plt.savefig(file)
+    plt.savefig(file)
+    plt.close()
 
 
-def plot_words_len_freq(data, file=None):
+def plot_words_len_freq(data, file):
     y = []
     for cnt in data:
         while len(y) <= cnt:

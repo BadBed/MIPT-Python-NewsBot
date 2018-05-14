@@ -104,7 +104,7 @@ def words_count_in_topic(topic_title):
 def most_popular_words(topic_title, count):
     dct = word_freq(find_article(topic_title).text)
     res = [(u, dct[u]) for u in dct]
-    res.sort(key = lambda x: x[1])
+    res.sort(key = lambda x: -x[1])
     return res[:count]
 
 
@@ -128,7 +128,7 @@ def word_len_freq_in_topic(topic_title):
 
 
 def most_popular_words_in_topic(topic_title, count):
-    dct = word_freq_in_topic(find_topic(topic_title).text)
+    dct = word_freq_in_topic(find_topic(topic_title).title)
     res = [(u, dct[u]) for u in dct]
-    res.sort(key = lambda x: x[1])
+    res.sort(key = lambda x: -x[1])
     return res[:count]

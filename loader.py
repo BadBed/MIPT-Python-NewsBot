@@ -1,6 +1,7 @@
 import parser
 import os
 import dateparser
+import statistic
 from my_database import TableTag, TableArticle, TableTopic
 
 
@@ -27,10 +28,13 @@ def load(time):
             break
 
         print('TOPIC:', t['title'])
-        topic = TableTopic.create(title=t['title'],
-                                  url=t['url'],
-                                  description=t['description'],
-                                  last_update=articles[0]['time'])
+        try:
+            topic = statistic.find_topic(t['title'])
+        except:
+            topic = TableTopic.create(title=t['title'],
+                                    url=t['url'],
+                                    description=t['description'],
+                                    last_update=articles[0]['time'])
 
         for a in articles:
             if (a['time'] < time):

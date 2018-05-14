@@ -1,10 +1,6 @@
 import loader
-import dateparser
-import os
-import matplotlib.pyplot as plt
-import pandas as pnd
-import statistic
-import graphics
 import bot
+import dateparser
 
-bot.start_bot()
+#bot.start_bot()
+loader.load_new(dateparser.parse("2 days ago"))

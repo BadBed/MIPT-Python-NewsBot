@@ -1,16 +1,11 @@
 from telebot import TeleBot
 import statistic
 import graphics
+import re
 import loader
 
 
 bot = TeleBot('560308205:AAF2VvyafzjeL0Oe3CFzHm4nV5bbMDRh9Og')
-
-@bot.message_handler(commands=['nbh'])
-def f(message):
-    message.text
-    message.chat.id
-    bot.send_message(message.chat.id, "kek")
 
 
 @bot.message_handler(commands=['help'])
@@ -44,7 +39,8 @@ def com_new_docs(message):
 def com_new_topics(message):
     try:
         n = int(message.text.split()[1])
-    except:
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
@@ -55,12 +51,13 @@ def com_new_topics(message):
 @bot.message_handler(commands=['topic'])
 def com_topic(message):
     try:
-        topic_title = message.text.split()[1]
-    except:
+        topic_title = re.sub("/topic ", "", message.text, 1)
+        topic = statistic.find_topic(topic_title)
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    topic = statistic.find_topic(topic_title)
     bot.send_message(message.chat.id, topic.title + '\n' + topic.description)
 
     for i in statistic.articles_by_topic(topic_title):
@@ -71,7 +68,8 @@ def com_topic(message):
 def com_doc(message):
     try:
         art_title = message.text.split()[1]
-    except:
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
@@ -83,7 +81,8 @@ def com_doc(message):
 def com_words(message):
     try:
         topic = message.text.split()[1]
-    except:
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
@@ -95,7 +94,8 @@ def com_words(message):
 def com_descr_doc(message):
     try:
         title = message.text.split()[1]
-    except:
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
@@ -115,7 +115,8 @@ def com_descr_doc(message):
 def com_descr_doc(message):
     try:
         title = message.text.split()[1]
-    except:
+    except Exception as err:
+        print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
@@ -143,6 +144,7 @@ def if_send_text(message):
 
 
 def start_bot():
+    loader.load_new("2 days ago")
     bot.polling(none_stop=True)
 
 

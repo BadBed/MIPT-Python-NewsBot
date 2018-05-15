@@ -1,1 +1,1 @@
-# MIPT-Python-NewsBot
+# Bot name: MIPT Yakunin News

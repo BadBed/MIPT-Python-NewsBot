@@ -1,5 +1,6 @@
 from s_database import TableTopic, TableArticle, TableTag
 from collections import defaultdict
+import pymorphy2
 import re
 
 
@@ -152,7 +153,7 @@ def word_len_freq(text):
     return word_dict
 
 
-def word_freq(text):
+def word_freq(text, min_len):
     """
     Частота слов
     :param text: текст
@@ -160,9 +161,11 @@ def word_freq(text):
     """
     words = get_words(text)
     word_dict = defaultdict(int)
+    morph = pymorphy2.MorphAnalyzer() 
     for word in words:
-        if len(word) > 2:
-            word_dict[word] += 1
+        parsed = morph.parse(word)[0]
+        if len(word) >= min_len and ('NOUN' in parsed.tag or 'UNKN' in parsed.tag):
+            word_dict[str(parsed.normal_form)] += 1
 
     return word_dict
 
@@ -199,14 +202,14 @@ def words_count_in_topic(topic_title):
     return result
 
 
-def most_popular_words(topic_title, count):
+def most_popular_words(topic_title, count, min_len):
     """
     Самые популярные слова в теме (список)
     :param topic_title: заголовок темы
     :param count: необходимое количество слов
     :return: список самых популярных слов
     """
-    freq_dict = word_freq(find_article(topic_title).text)
+    freq_dict = word_freq(find_article(topic_title).text, min_len)
     result = [(u, freq_dict[u]) for u in freq_dict]
     result.sort(key=lambda x: -x[1])
     return result[:count]
@@ -225,14 +228,14 @@ def dicts_sum(*dicts):
     return result
 
 
-def word_freq_in_topic(topic_title):
+def word_freq_in_topic(topic_title, min_len):
     """
     Частота слов в теме
     :param topic_title: заголовок темы
     :return: словарь частот слов в теме
     """
     articles = all_articles_by_topic(topic_title)
-    small_freqs = [word_freq(article.text) for article in articles]
+    small_freqs = [word_freq(article.text, min_len) for article in articles]
     return dicts_sum(*small_freqs)
 
 
@@ -247,14 +250,14 @@ def word_len_freq_in_topic(topic_title):
     return dicts_sum(*small_freqs)
 
 
-def most_popular_words_in_topic(topic_title, count):
+def most_popular_words_in_topic(topic_title, count, min_len):
     """
     Самые популярные слова в теме (словарь с частотами)
     :param topic_title: заголовок темы
     :param count: необходимое число слов
     :return: словарь популярных слов с частотами
     """
-    freq_dict = word_freq_in_topic(find_topic(topic_title).title)
+    freq_dict = word_freq_in_topic(find_topic(topic_title).title, min_len)
     result = [(u, freq_dict[u]) for u in freq_dict]
     result.sort(key=lambda x: -x[1])
     return result[:count]

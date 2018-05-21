@@ -19,6 +19,7 @@ HELP = '''/help - показать все, что может бот. \n
 STANDARD_NUMBER = 5
 STANDARD_WORD_NUMBER = 15
 STANDARD_DATE = "14.05.2018"
+MIN_WORD_LEN_FOR_FREQ = 1
 
 
 def com_start(message):
@@ -155,7 +156,8 @@ def com_describe_doc(message):
 
     bot_message = "Самые популярные слова:\n"
     for word in s_statistic.most_popular_words(title,
-                                               STANDARD_WORD_NUMBER):
+                                               STANDARD_WORD_NUMBER,
+                                               MIN_WORD_LEN_FOR_FREQ):
         bot_message += word[0] + ' - ' + str(word[1]) + ' раз\n'
     bot.send_message(message.chat.id, bot_message)
 
@@ -196,7 +198,8 @@ def com_describe_topic(message):
 
     bot_message = "Самые популярные слова:\n"
     for word in s_statistic.most_popular_words_in_topic(title,
-                                                        STANDARD_WORD_NUMBER):
+                                                        STANDARD_WORD_NUMBER,
+                                                        MIN_WORD_LEN_FOR_FREQ):
         bot_message += word[0] + ' - ' + str(word[1]) + ' раз\n'
     bot.send_message(message.chat.id, bot_message)
 
@@ -230,7 +233,7 @@ def start_bot():
     """
     Запуск бота с автоматическим обновлением базы данных
     """
-    s_loader.load_new(STANDARD_DATE)
+    # s_loader.load_new(STANDARD_DATE)
     print("Я готов к работе")
     bot.polling(none_stop=True)
 

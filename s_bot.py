@@ -2,54 +2,87 @@ from telebot import TeleBot
 import s_statistic
 import s_graphics
 import re
+import dateparser
 import s_loader
 
 
 bot = TeleBot('560308205:AAF2VvyafzjeL0Oe3CFzHm4nV5bbMDRh9Og')
+HELP = '''/help - показать все, что может бот. \n
+/new_docs <N> - показать N самых свежих новостей. \n
+/new_topics <N> - показать N самых свежих тем. \n
+/topic <topic_name> - показать описание темы и заголовки 5 самых
+свежих новостей в этой теме. \n
+/doc <doc_title> - показать текст документа с заданным заголовком. \n
+/tags <topic_name> - показать 5 самых популярных тегов по этой теме. \n
+/describe_doc <doc_title> - вывести статистику по документу. \n
+/describe_topic <topic_name> - вывести статистику по теме. \n'''
+STANDARD_NUMBER = 5
+STANDARD_WORD_NUMBER = 15
+STANDARD_DATE = "14.05.2018"
 
 
-@bot.message_handler(commands=['help'])
+def com_start(message):
+    """
+    Начало работы бота
+    :param message: сообщение пользователя
+    :return: посылает сообщение о начале работы
+    """
+    bot.send_message(message.chat.id, "К работе готов.")
+
+
 def com_help(message):
-    bot.send_message(message.chat.id,
-    """/help - показать все, что может бот. \n
-    /new_docs <N> - показать N самых свежих новостей. \n
-    /new_topics <N> - показать N самых свежих тем. \n
-    /topic <topic_name> - показать описание темы и заголовки 5 самых
-     свежих новостей в этой теме. \n
-    /doc <doc_title> - показать текст документа с заданным заголовком. \n
-    /tags <topic_name> - показать 5 самых популярных тегов по этой тему. \n
-    /describe_doc <doc_title> - вывести статистику по документу. \n
-    /describe_topic <topic_name> - вывести статистику по теме. \n
-    """)
+    """
+    Справка
+    :param message: сообщение пользователя
+    :return: посылает сообщение-справку
+    """
+    bot.send_message(message.chat.id, HELP)
 
 
-@bot.message_handler(commands=['new_docs'])
 def com_new_docs(message):
+    """
+    Новые статьи
+    :param message: сообщение пользователя
+    :return: посылает несколько новых статей
+    """
     try:
-        n = int(message.text.split()[1])
-    except:
+        number = int(message.text.split()[1])
+    except TypeError:
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
+    except IndexError:
+        number = STANDARD_NUMBER
 
-    for i in s_statistic.last_articles(n):
-        bot.send_message(message.chat.id, str(i.title) + '\n' + str(i.url))
+    for article in s_statistic.last_articles(number):
+        bot.send_message(message.chat.id, str(article.title) +
+                         '\n' + str(article.url))
 
 
-@bot.message_handler(commands=['new_topics'])
 def com_new_topics(message):
+    """
+    Обновлённые темы
+    :param message: сообщение пользователя
+    :return: посылает несколько обновлённых тем
+    """
     try:
-        n = int(message.text.split()[1])
+        number = int(message.text.split()[1])
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
+    except IndexError:
+        number = STANDARD_NUMBER
 
-    for i in s_statistic.last_topics(n):
-        bot.send_message(message.chat.id, i.title + '\n' + i.url)
+    for topic in s_statistic.last_topics(number):
+        bot.send_message(message.chat.id, topic.title + '\n' + topic.url)
 
 
-@bot.message_handler(commands=['topic'])
 def com_topic(message):
+    """
+    Описание темы
+    :param message: сообщение пользователя
+    :return: посылает описание темы и несколько её последних статей
+    """
     try:
         topic_title = re.sub("/topic ", "", message.text, 1)
         topic = s_statistic.find_topic(topic_title)
@@ -60,37 +93,51 @@ def com_topic(message):
 
     bot.send_message(message.chat.id, topic.title + '\n' + topic.description)
 
-    for i in s_statistic.articles_by_topic(topic_title, 5):
-        bot.send_message(message.chat.id, i.title + '\n' + i.url)
+    for article in s_statistic.articles_by_topic(topic_title,
+                                                 STANDARD_NUMBER):
+        bot.send_message(message.chat.id, article.title + '\n' + article.url)
 
 
-@bot.message_handler(commands=['doc'])
 def com_doc(message):
+    """
+    Текст статьи
+    :param message: сообщение пользователя
+    :return: посылает текст статьи
+    """
     try:
         art_title = re.sub("/doc ", "", message.text, 1)
-        art = s_statistic.find_article(art_title)
+        article = s_statistic.find_article(art_title)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    bot.send_message(message.chat.id, art.title + '\n' + art.text)
+    bot.send_message(message.chat.id, article.title + '\n' + article.text)
 
 
-@bot.message_handler(commands=['tags'])
-def com_words(message):
+def com_tags(message):
+    """
+    Популярные в теме тэги
+    :param message: сообщение пользователя
+    :return: посылает 5 самых популярных тэгов темы
+    """
     try:
         topic = re.sub("/tags ", "", message.text, 1)
-        for t in s_statistic.best_tags(topic, 5):
-            bot.send_message(message.chat.id, t)
+        for tag in s_statistic.best_tags(topic, STANDARD_NUMBER):
+            bot.send_message(message.chat.id, tag)
     except Exception as err:
         print(err)
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
 
-@bot.message_handler(commands=['describe_doc'])
-def com_descr_doc(message):
+def com_describe_doc(message):
+    """
+    Статистика статьи
+    :param message: сообщение пользователя
+    :return: посылает график частот длин слов и
+        15 самых популярных значимых слов в статье
+    """
     try:
         title = re.sub("/describe_doc ", "", message.text, 1)
         s_statistic.find_article(title)
@@ -100,19 +147,28 @@ def com_descr_doc(message):
         return None
 
     s_graphics.plot_words_len_freq(
-        s_statistic.word_len_freq(s_statistic.find_article(title).text), "plot.png")
-    f = open("plot.png", "rb")
-    bot.send_photo(message.chat.id, f)
-    f.close()
+        s_statistic.word_len_freq(s_statistic.find_article(title).text),
+        "plot.png")
+    plot_file = open("plot.png", "rb")
+    bot.send_photo(message.chat.id, plot_file)
+    plot_file.close()
 
-    mes = "Самые популярные слова:\n"
-    for i in s_statistic.most_popular_words(title, 15):
-        mes += i[0] + ' - ' + str(i[1]) + ' раз\n'
-    bot.send_message(message.chat.id, mes)
+    bot_message = "Самые популярные слова:\n"
+    for word in s_statistic.most_popular_words(title,
+                                               STANDARD_WORD_NUMBER):
+        bot_message += word[0] + ' - ' + str(word[1]) + ' раз\n'
+    bot.send_message(message.chat.id, bot_message)
 
 
-@bot.message_handler(commands=['describe_topic'])
-def com_descr_topic(message):
+def com_describe_topic(message):
+    """
+    Статистика темы
+    :param message: сообщение пользователя
+    :return: посылает количество слов и статей в теме,
+        среднюю длину статьи в теме,
+        график частот длин слов и
+        15 самых популярных значимых слов в теме
+    """
     try:
         title = re.sub("/describe_topic ", "", message.text, 1)
         s_statistic.find_topic(title)
@@ -121,32 +177,61 @@ def com_descr_topic(message):
         bot.send_message(message.chat.id, "Некорректная команда")
         return None
 
-    bot.send_message(message.chat.id, "Количество слов в теме:" +
+    bot.send_message(message.chat.id, "Количество слов в теме: " +
                      str(s_statistic.words_count_in_topic(title)))
 
-    bot.send_message(message.chat.id, "Количесвто статей в теме:" +
+    bot.send_message(message.chat.id, "Количесвто статей в теме: " +
                      str(s_statistic.docs_count_in_topic(title)))
+
+    bot.send_message(message.chat.id, "Средняя длина статьи " +
+                     str(round(s_statistic.words_count_in_topic(title) /
+                               s_statistic.docs_count_in_topic(title))) +
+                     ' слов')
 
     s_graphics.plot_words_len_freq(
         s_statistic.word_len_freq_in_topic(title), "plot.png")
-    f = open("plot.png", "rb")
-    bot.send_photo(message.chat.id, f)
-    f.close()
+    plot_file = open("plot.png", "rb")
+    bot.send_photo(message.chat.id, plot_file)
+    plot_file.close()
 
-    mes = "Самые популярные слова:\n"
-    for i in s_statistic.most_popular_words_in_topic(title, 15):
-        mes += i[0] + ' - ' + str(i[1]) + ' раз\n'
-    bot.send_message(message.chat.id, mes)
+    bot_message = "Самые популярные слова:\n"
+    for word in s_statistic.most_popular_words_in_topic(title,
+                                                        STANDARD_WORD_NUMBER):
+        bot_message += word[0] + ' - ' + str(word[1]) + ' раз\n'
+    bot.send_message(message.chat.id, bot_message)
 
 
-@bot.message_handler(commands=['text'])
+@bot.message_handler(commands=['start', 'help', 'topic',
+                               'doc', 'tags', 'new_docs',
+                               'new_topics', 'describe_topic',
+                               'describe_doc'])
+def if_send_command(message):
+    """
+    Принимает команду от пользователя
+    :param message: сообщение пользователя (команда и текст)
+    :return: выполняет одну из команд
+    """
+    command = re.findall(r'\w+', message.text)[0]
+    exec("com_" + command + "(message)")
+
+
+@bot.message_handler(content_types=['text'])
 def if_send_text(message):
-    bot.send_message(message.chat.id, "Тут должна быть смешнявка, но ее нет. Извините.")
+    """
+    Принимает текст без команды
+    :param message: сообщение пользователя
+    :return: сообщение бота
+    """
+    bot.send_message(message.chat.id,
+                     "Тут должна быть смешнявка, но ее нет. Извините.")
 
 
 def start_bot():
-    s_loader.load_new("2 days ago")
-    print("starting bot")
+    """
+    Запуск бота с автоматическим обновлением базы данных
+    """
+    s_loader.load_new(STANDARD_DATE)
+    print("Я готов к работе")
     bot.polling(none_stop=True)
 
 

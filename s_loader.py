@@ -1,52 +1,60 @@
 import s_parser
-import os
 import dateparser
 import s_statistic
 from s_database import TableTag, TableArticle, TableTopic
 
+TODAY = str(dateparser.parse('today'))
+
 
 def load_new(default_time):
+    """
+    Загрузка новых статей в формирующуюся базу данных
+    :param default_time: ограничение на время публикации для статей
+    """
     try:
-        file = open('last_update_db', 'r')
-        time = dateparser.parse(file.read())
-        file.close()
+        db_file = open('last_update_db', 'r')
+        time = dateparser.parse(db_file.read())
+        db_file.close()
     except FileNotFoundError:
-        time = default_time
+        time = dateparser.parse(default_time)
 
     load(time)
 
-    file = open('last_update_db', 'w')
-    file.write(str(dateparser.parse('today')))
-    file.close()
+    db_file = open('last_update_db', 'w')
+    db_file.write(TODAY)
+    db_file.close()
 
 
 def load(time):
+    """
+    Подгрузка новостей к сформированной базе данных
+    :param time: ограничение на время публикации для статей
+    """
     topics = s_parser.parse_topics_list()
-    for t in topics:
-        articles = s_parser.parse_topic(t['url'])
+    for topic in topics:
+        articles = s_parser.parse_topic(topic['url'])
         if articles[0]['time'] < time:
             break
 
-        print('TOPIC:', t['title'])
-        try:
-            topic = s_statistic.find_topic(t['title'])
-        except:
-            topic = TableTopic.create(title=t['title'],
-                                    url=t['url'],
-                                    description=t['description'],
-                                    last_update=articles[0]['time'])
+        print('TOPIC:', topic['title'])
+        if not s_statistic.is_topic_in_database(topic['title']):
+            topic = TableTopic.create(title=topic['title'],
+                                      url=topic['url'],
+                                      description=topic['description'],
+                                      last_update=articles[0]['time'])
 
-        for a in articles:
-            if (a['time'] < time):
+        for article in articles:
+            if article['time'] < time:
                 break
 
-            art = s_parser.parse_article(a['url'])
-            print('article:', a['title'])
-            article = TableArticle.create(topic=topic,
-                                          title=a['title'],
-                                          url=a['url'],
-                                          text=art['text'],
-                                          last_update=a['time'])
+            print('article:', article['title'])
+            if not s_statistic.is_article_in_database(article['title']):
+                article_text = s_parser.parse_article(article['url'])
+                article = TableArticle.create(topic=topic,
+                                              title=article['title'],
+                                              url=article['url'],
+                                              text=article_text['text'],
+                                              last_update=article['time'])
 
-            for tag in art['tags']:
-                TableTag.create(article=article, tag=tag)
+                for tag in article_text['tags']:
+                    TableTag.create(article=article, tag=tag)

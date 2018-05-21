@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 
 
 def parse_topics_list():
+    """
+    Парсит список тем
+    :return: список распарсенный тем
+    """
     data = BeautifulSoup(requests.get('https://www.rbc.ru/story/').text, 'lxml')
     topic_list = data.find_all('div', {'class': 'item item_story js-story-item'})
     result = []
@@ -18,14 +22,18 @@ def parse_topics_list():
 
 
 def parse_topic(address):
+    """
+    Парсит статьи в теме
+    :param address: адрес темы
+    :return: список распарсенных статей
+    """
     data = BeautifulSoup(requests.get(address).text, 'lxml')
     article_list = data.find_all('div',
-                    {'class': 'item item_story-single js-story-item'})
+                                 {'class': 'item item_story-single js-story-item'})
     result = []
 
     for article in article_list:
-        url = article.find('a', {'class':
-                    'item__link no-injects js-yandex-counter'})['href'].strip()
+        url = article.find('a', {'class': 'item__link no-injects js-yandex-counter'})['href'].strip()
         title = article.find('span', {'class': 'item__title'}).text.strip()
         time_str = article.find('span', {'class': 'item__info'}).text.strip()
         time = dateparser.parse(time_str)
@@ -35,8 +43,12 @@ def parse_topic(address):
 
 
 def parse_article(address):
+    """
+    Парсит текст статьи и тэги статьи
+    :param address: адрес статьи
+    :return: текст статьи и список её тэгов
+    """
     data = BeautifulSoup(requests.get(address).text, 'lxml')
-    article = data.find('div', {'class': 'article__text'})
     result = {'text': '', 'tags': []}
 
     paragraphs = data.find_all('p')
@@ -46,7 +58,7 @@ def parse_article(address):
     tags_lives_here = data.find('div', {'class': 'article__tags'})
     if tags_lives_here is not None:
         tags = tags_lives_here.find_all('a', {'class': 'article__tags__link'})
-        for t in tags:
-            result['tags'].append(t.text.strip())
+        for tag in tags:
+            result['tags'].append(tag.text.strip())
 
     return result

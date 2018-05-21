@@ -4,6 +4,13 @@ db = SqliteDatabase('rbc.db')
 
 
 class TableTopic(Model):
+    """
+    Таблица тем. Включает поля:
+        заголовок
+        url-адрес страницы
+        описание
+        последнее время обновления
+    """
     title = CharField()
     url = CharField()
     description = CharField()
@@ -14,6 +21,14 @@ class TableTopic(Model):
 
 
 class TableArticle(Model):
+    """
+    Таблица статей. Включает поля:
+        тема
+        заголовок
+        url-адрес страницы
+        текст
+        последнее время обновления
+    """
     topic = ForeignKeyField(TableTopic, related_name="articles")
     title = CharField()
     url = CharField()
@@ -25,6 +40,11 @@ class TableArticle(Model):
 
 
 class TableTag(Model):
+    """
+    Таблица тэгов. Включает поля:
+        тэг
+        статья, к которой он прикреплён
+    """
     tag = CharField()
     article = ForeignKeyField(TableArticle, related_name="tags")
 
